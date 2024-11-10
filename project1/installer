@@ -1,0 +1,32 @@
+#!/bin/bash
+
+
+#defining package
+pkg="package"
+
+# checking if the package file exists. If not, returns error.
+if [ ! -f "$pkg" ]; then
+	echo "Error: Packages not found."
+ 	exit 1
+fi
+
+# reading every line in the package file
+while IFS= read -r package || [[ -n "$package" ]]; do
+
+  	# skips empty lines and comments
+	if [[ -z "$package" || "$package" =~ ^# ]]; then
+		continue
+	fi
+
+  	# installing each package in file and handling errors
+  	echo "Installing $package..."
+
+  	if ! pacman -S --noconfirm "$package"; then
+		echo "Error: Failed to install packages." # returns error if package cannot be installed
+    		continue
+
+	fi
+
+done < "$pkg"
+
+echo "Package installation complete"

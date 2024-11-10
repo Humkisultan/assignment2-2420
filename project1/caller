@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Defining the paths to the scripts to be run and creating flags for running each script and initializing them as false
+
+installP="./installer"
+sym="./symlink"
+
+run_installer=false
+run_symlink=false
+
+# getting command line options for specifying the scripts the user wants to run using getopts
+while getopts "ais" opt; do
+	case $opt in
+		a) run_installer=true; run_symlink=true ;;  # selecting -a will change the value of the runners to true and run both scripts
+		i) run_installer=true ;; # runs only the installer script
+    		s) run_symlink=true ;; # runs only the symlink script
+    		\?)
+			echo "Invalid option: -${OPTARG}" #returns error when no option is specified
+      			exit 1
+      			;;
+	esac
+done
+
+
+# checks if an option is specified in the command line
+if ! $run_installer && ! $run_symlink; then
+	echo "Error: No options specified. Use -a, -i, or -s."
+  	exit 1
+fi
+
+# if user selects -i, run_installer is true and the installer script is run
+if $run_installer; then
+	if [ -f "$installP" ]; then
+		bash "$installP" # runs installer
+		echo "All packages installed."
+	else
+		echo "Error: '$installP' not found." # returns error if script not found
+		exit 1
+	fi
+fi
+
+# if user selects -s, run_symlink is true and the symlink script is run
+if $run_symlink; then
+	if [ -f "$sym" ]; then
+		bash "$sym" # runs symlink
+		echo "Symbolic links created for directories." 
+	else
+		echo "Error: Symlink creation script '$sym' not found." # returns error if symlink not found
+		exit 1
+	fi
+fi
+
+# if user selects -a, both run_symlink and run_installer becomes true and both scripts are run.
+
+echo "Setup complete."
+

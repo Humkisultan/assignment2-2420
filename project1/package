@@ -1,3 +1,5 @@
+#packages to be installed
+#the installer script will read each line and install the packages
 git
 htop
 neovim

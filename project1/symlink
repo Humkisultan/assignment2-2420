@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Defining source dir
+
+binD="./bin"
+configD="./config"
+homeD="./home"
+
+# Target for symlink
+
+binT="$HOME/bin"
+configT="$HOME/.config"
+bashrcT="$HOME/.bashrc"
+
+# function for creating symlinks for a directory
+symlinkify() {
+	local source="$1"
+  	local target="$2"
+
+  	# if the target already exists
+  	if [ -e "$target" ] || [ -L "$target" ]; then
+		echo "Removing existing '$target' to create a new link."
+    		rm -rf "$target"  # removes existing target
+  	fi
+
+  	ln -s "$source" "$target" #creates the symlink for the source into the target
+}
+
+
+# creating symlink for bin
+symlinkify "$binD" "$binT"
+echo "Symbolic link created for bin."
+
+# creating symlink for config
+mkdir -p "$configT/kak" "$configT/tmux"  # Ensure target directories exist
+
+symlinkify "$configD/kak/kakrc" "$configT/kak/kakrc"
+symlinkify "$configD/tmux/tmux.conf" "$configT/tmux/tmux.conf"
+echo "Symbolic link created for config."
+
+# creating symlink for home
+symlinkify "$homeD/bashrc" "$bashrcT"
+echo "Symbolic link created for home."
+
+
