@@ -4,13 +4,13 @@
 while getopts "u:s:g:" opt; do
 	case $opt in
 		u)
-			name="$OPTARG" 
+			name="${OPTARG}" # name stores the username 
 			;;
 		s)
-			shell="$OPTARG"
+			shell="${OPTARG}" # shell stores the shell provided by the user
 			;;
 		g)
-			groups="$OPTARG"
+			groups="${OPTARG}" # groups store the groups provided by the user
 			;;
 		\?)
 			echo "Invalid option: -${OPTARG}" # if the user inputs anything other than -u, -s or -g, returns an error
@@ -29,13 +29,13 @@ if [ -z "$name" ] || [ -z "$shell" ]; then
     	exit 1
 fi
 
-# checks and returns error if username provided already exists
+# checks and returns error if username provided already exists in /etc/passwd
 if grep -q "^$name:" /etc/passwd; then
 	echo "Error: User '$name' already exists."
 	exit 1
 fi
 
-# creating  default home directory for the user
+# setting  default home directory for the user
 home_dir="/home/$name"
 
 # processing /etc/passwd using awk and incrementing the highest uid to get a unique uid for the new user
@@ -43,16 +43,17 @@ user_uid=$(awk -F: '{ if ($3 >= max_uid) max_uid=$3 } END { print max_uid + 1 }'
 user_gid=$user_uid  # same gid as uid
 
 
-
+# creating new user in /etc/passwd
 echo "$name:x:$user_uid:$user_gid:$name:$home_dir:$shell" >> /etc/passwd
 echo "New user '$name' created."
 
+# creating primary group for user in /etc/group
 echo "$name:x:$user_gid:" >> /etc/group
 echo "Created primary group."
 
 # adding new groups if included by the user
 if [ -n "$groups" ]; then
-	IFS=',' read -ra new_group <<< "$groups"
+	IFS=',' read -ra new_group <<< "$groups" # splits group names by ,
     	for grp in "${new_group[@]}"; do
         	# creates new group if specified group does not exist
         	if ! grep -q "^$grp:" /etc/group; then
@@ -65,7 +66,7 @@ fi
 
 # creating home directory if it does not exist
 mkdir -p "$home_dir"
-cp -r /etc/skel/. "$home_dir"
+cp -r /etc/skel/. "$home_dir" # copying user's config files to the user's home directory
 chown -R "$name:$name" "$home_dir"
 echo "Home directory for '$name' created."
 
