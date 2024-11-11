@@ -18,11 +18,11 @@ while getopts "ais" opt; do
     		s) 
 			run_symlink=true ;; # runs only the symlink script
     		\?)
-			echo "Invalid option: -${OPTARG}" #returns error when no option is specified
+			echo "Invalid option: -${OPTARG}" #returns error when option is invalid
       			exit 1
       			;;
 		:) 
-			echo "Option -$OPTARG requires an argument."
+			echo "Option -$OPTARG requires an argument."  # returns an error if no option is specified
 			exit 1
       			;;
 	esac
