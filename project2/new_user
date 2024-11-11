@@ -1,10 +1,10 @@
 #!/bin/bash
 
-
+#getting the username and shell from the user, and optionally any groups, using getopts
 while getopts "u:s:g:" opt; do
     case $opt in
         u)
-            name="$OPTARG"
+            name="$OPTARG" 
             ;;
         s)
             shell="$OPTARG"
@@ -13,57 +13,58 @@ while getopts "u:s:g:" opt; do
             groups="$OPTARG"
             ;;
         \?)
-            echo "Invalid option: -${OPTARG}"
+            echo "Invalid option: -${OPTARG}" # if the user inputs anything other than -u, -s or -g, returns an error
             exit 1
             ;;
         :)
-            echo "Option -${OPTARG} requires an argument."
+            echo "Option -${OPTARG} requires an argument." # if the user does not provide any option, returns an error
             exit 1
             ;;
     esac
 done
 
-
+# checking if the required values (username and shell) are provoded. If not, returns error.
 if [ -z "$name" ] || [ -z "$shell" ]; then
     echo "Error: Must provide username and shell."
     exit 1
 fi
 
-
+# creating  default home directory for the user
 home_dir="/home/$name"
 
-
+# processing /etc/passwd using awk and incementing the highest uid to get a unique uid for the new user
 user_uid=$(awk -F: '{ if ($3 >= max_uid) max_uid=$3 } END { print max_uid + 1 }' /etc/passwd)
-user_gid=$user_uid  
+user_gid=$user_uid  # same gid as uid
 
 
-echo "Creating new user $name..."
+
 echo "$name:x:$user_uid:$user_gid:$name:$home_dir:$shell" >> /etc/passwd
-
+echo "New user '$name' created."
 
 echo "$name:x:$user_gid:" >> /etc/group
-echo "Created primary group/"
+echo "Created primary group."
 
-
+# adding new groups if included by the user
 if [ -n "$groups" ]; then
     IFS=',' read -ra new_group <<< "$groups"
     for grp in "${new_group[@]}"; do
-        
+        # creates new group if specified group does not exist
         if ! grep -q "^$grp:" /etc/group; then
             user_gid=$((user_gid + 1))
             echo "$grp:x:$user_gid:" >> /etc/group
         fi
         
-        sed -i "/^$grp:/ s/$/,$name/" /etc/group
+        sed -i "/^$grp:/ s/$/,$name/" /etc/group # adds the user to the group
     done
 fi
 
-
+# creating home directory if it does not exist
 mkdir -p "$home_dir"
 cp -r /etc/skel/. "$home_dir"
 chown -R "$name:$name" "$home_dir"
 echo "Home directory for '$name' created."
 
+# giving the new user a password
 echo "Please enter a password for $name: "
 passwd "$name"
 
