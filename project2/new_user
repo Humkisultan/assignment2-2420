@@ -29,6 +29,12 @@ if [ -z "$name" ] || [ -z "$shell" ]; then
     exit 1
 fi
 
+# checks and returns error if username provided already exists
+if grep -q "^$name:" /etc/passwd; then
+    echo "Error: User '$name' already exists."
+    exit 1
+fi
+
 # creating  default home directory for the user
 home_dir="/home/$name"
 
