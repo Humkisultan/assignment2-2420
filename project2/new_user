@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# getting command line options using getopts
+while getopts "u:s:g:" opt; do
+	case $opt in
+		u) 
+			name="$OPTARG" 
+			;;
+		s)
+			shell="$OPTARG" 
+			;;
+		g) 
+			groups="$OPTARG" 
+			;;
+		\?) 
+			echo "Invalid option: -${OPTARG}"
+			exit 1
+			;;
+		:)
+			echo "Option -${OPTARG} requires an argument."
+			exit 1
+			;;
+	esac
+done
+
+
+# Ensure required options are provided
+if [ -z "$USERNAME" ] || [ -z "$SHELL" ]; then
+	echo "Error: Username and shell are required."
+    	usage
+fi
+
+# Set default home directory if not specified
+HOME_DIR="${HOME_DIR:-/home/$USERNAME}"
+
+# Generate unique UID and GID by finding the highest existing IDs and adding 1
+NEW_UID=$(awk -F: '{ if ($3 >= max_uid) max_uid=$3 } END { print max_uid + 1 }' /etc/passwd)
+NEW_GID=$NEW_UID  # Set GID to match UID for the new user's primary group
+
+# Add user to /etc/passwd with specified shell and home directory
+echo "Creating user '$USERNAME' with UID=$NEW_UID, GID=$NEW_GID, home directory '$HOME_DIR', and shell '$SHELL'..."
+echo "$USERNAME:x:$NEW_UID:$NEW_GID:$USERNAME:$HOME_DIR:$SHELL" >> /etc/passwd
+
+# Create primary group in /etc/group
+echo "Creating primary group '$USERNAME' with GID=$NEW_GID..."
+echo "$USERNAME:x:$NEW_GID:" >> /etc/group
+
+# Add user to additional groups, if specified
+if [ -n "$GROUPS" ]; then
+	IFS=',' read -ra ADD_GROUPS <<< "$GROUPS"
+	for grp in "${ADD_GROUPS[@]}"; do
+        	# Check if group exists; if not, create it with a new GID
+		if ! grep -q "^$grp:" /etc/group; then
+            		NEW_GID=$((NEW_GID + 1))
+			echo "Creating additional group '$grp' with GID=$NEW_GID..."
+            		echo "$grp:x:$NEW_GID:" >> /etc/group
+		fi
+       		# Add user to the group in /etc/group
+        	sed -i "/^$grp:/ s/$/,$USERNAME/" /etc/group
+	done
+fi
+
+# Create the home directory, if it doesn’t exist, and copy /etc/skel contents
+echo "Creating home directory '$HOME_DIR' and copying default files from /etc/skel..."
+mkdir -p "$HOME_DIR"
+cp -r /etc/skel/. "$HOME_DIR"
+chown -R "$USERNAME:$USERNAME" "$HOME_DIR"
+
+# Set password for the user
+echo "Setting password for '$USERNAME'..."
+passwd "$USERNAME"
+
+echo "User '$USERNAME' created successfully with home directory '$HOME_DIR', shell '$SHELL', and additional groups '$GROUPS'."
+
