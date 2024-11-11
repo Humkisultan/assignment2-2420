@@ -32,7 +32,7 @@ fi
 # creating  default home directory for the user
 home_dir="/home/$name"
 
-# processing /etc/passwd using awk and incementing the highest uid to get a unique uid for the new user
+# processing /etc/passwd using awk and incrementing the highest uid to get a unique uid for the new user
 user_uid=$(awk -F: '{ if ($3 >= max_uid) max_uid=$3 } END { print max_uid + 1 }' /etc/passwd)
 user_gid=$user_uid  # same gid as uid
 
@@ -68,5 +68,5 @@ echo "Home directory for '$name' created."
 echo "Please enter a password for $name: "
 passwd "$name"
 
-echo "User '$name' created. Home directory: '$home_dir'; Shell: '$shell'; Groups: '$groups'."
+echo "User creation complete."
 
