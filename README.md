@@ -16,7 +16,9 @@ This project contains 3 main scripts and 1 user-defined package file, along with
 **Running the scripts** - The "caller" script runs "installer", "symlink", or both scripts based on user-specified options. The user can choose between:
 
 -a : Runs both "installer" and "symlink" scripts.
+
 -i : Runs only the "installer" script.
+
 -s : Runs only the "symlink" script.
 
 
@@ -35,7 +37,9 @@ If an invalid option is specified or if the specified script is missing, an erro
 There are 3 possible command-line options for this script:
 
 -u : Specifies the username for the new user and is required for the generation of a new user.
+
 -s : Specifies the shell for the new user and is required for the generation of a new user.
+
 -g : Optionally, specifies a comma-separated list of additional groups the user should be added to.
 
 
