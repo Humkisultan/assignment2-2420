@@ -2,37 +2,37 @@
 
 #getting the username and shell from the user, and optionally any groups, using getopts
 while getopts "u:s:g:" opt; do
-    case $opt in
-        u)
-            name="$OPTARG" 
-            ;;
-        s)
-            shell="$OPTARG"
-            ;;
-        g)
-            groups="$OPTARG"
-            ;;
-        \?)
-            echo "Invalid option: -${OPTARG}" # if the user inputs anything other than -u, -s or -g, returns an error
-            exit 1
-            ;;
-        :)
-            echo "Option -${OPTARG} requires an argument." # if the user does not provide any option, returns an error
-            exit 1
-            ;;
-    esac
+	case $opt in
+		u)
+			name="$OPTARG" 
+			;;
+		s)
+			shell="$OPTARG"
+			;;
+		g)
+			groups="$OPTARG"
+			;;
+		\?)
+			echo "Invalid option: -${OPTARG}" # if the user inputs anything other than -u, -s or -g, returns an error
+			exit 1
+			;;
+		:)
+			echo "Option -${OPTARG} requires an argument." # if the user does not provide any option, returns an error
+			exit 1
+            		;;
+	esac
 done
 
 # checking if the required values (username and shell) are provoded. If not, returns error.
 if [ -z "$name" ] || [ -z "$shell" ]; then
-    echo "Error: Must provide username and shell."
-    exit 1
+	echo "Error: Must provide username and shell."
+    	exit 1
 fi
 
 # checks and returns error if username provided already exists
 if grep -q "^$name:" /etc/passwd; then
-    echo "Error: User '$name' already exists."
-    exit 1
+	echo "Error: User '$name' already exists."
+	exit 1
 fi
 
 # creating  default home directory for the user
@@ -52,16 +52,15 @@ echo "Created primary group."
 
 # adding new groups if included by the user
 if [ -n "$groups" ]; then
-    IFS=',' read -ra new_group <<< "$groups"
-    for grp in "${new_group[@]}"; do
-        # creates new group if specified group does not exist
-        if ! grep -q "^$grp:" /etc/group; then
-            user_gid=$((user_gid + 1))
-            echo "$grp:x:$user_gid:" >> /etc/group
-        fi
-        
-        sed -i "/^$grp:/ s/$/,$name/" /etc/group # adds the user to the group
-    done
+	IFS=',' read -ra new_group <<< "$groups"
+    	for grp in "${new_group[@]}"; do
+        	# creates new group if specified group does not exist
+        	if ! grep -q "^$grp:" /etc/group; then
+			user_gid=$((user_gid + 1))
+			echo "$grp:x:$user_gid:" >> /etc/group
+        	fi
+		sed -i "/^$grp:/ s/$/,$name/" /etc/group # adds the user to the group
+	done
 fi
 
 # creating home directory if it does not exist
