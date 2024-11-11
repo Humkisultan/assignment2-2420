@@ -1,7 +1,7 @@
 # Assignment 2 - ACIT 2420
 
 
-Project 1 - Configuration Scripts
+# Project 1 - Configuration Scripts
 
 
 This project contains 3 main scripts and 1 user-defined package file, along with the directories "bin", "config", and "home", which are cloned from the providedgitlab repository.
@@ -25,7 +25,7 @@ If an invalid option is specified or if the specified script is missing, an erro
 
 
 
-Project 2 - New User Script
+# Project 2 - New User Script
 
 
 
